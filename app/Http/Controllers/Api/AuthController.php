@@ -3,79 +3,98 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Events\UserLoggedIn;
 use App\Events\UserLoggedOut;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-// ...existing code...
 class AuthController extends Controller
 {
-    // ...existing code...
+    /**
+     * Handle user login.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Services\AuthService $authService
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(Request $request, AuthService $authService)
     {
         $request->validate([
-            'username' => 'required|string',
-            'password' => 'required',
+            'username' => 'required|string|max:255',
+            'password' => 'required|string',
         ]);
 
-        $user = $authService->attemptLogin($request->username, $request->password);
-        $user->tokens()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
-        $user->load('role.permissions');
+        $user = $authService->attemptLogin(
+            trim($request->input('username')),
+            $request->input('password')
+        );
+
+        event(new UserLoggedIn($user, $request->ip(), $request->userAgent()));
+
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
             'data' => [
+                'access_token' => $token,
+                'token_type' => 'Bearer',
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'username' => $user->username,
+                    'role_id' => $user->role_id,
+                    'is_active' => $user->is_active,
+                    'created_at' => $user->created_at,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
                         'display_name' => $user->role->display_name,
+                        'description' => $user->role->description,
                     ] : null,
                     'permissions' => $user->role
                         ? $user->role->permissions->pluck('name')->toArray()
                         : [],
                 ],
-                'token' => $token,
-                'token_type' => 'Bearer',
             ],
         ], 200);
     }
 
-    // ...existing code...
+    /**
+     * Handle user logout.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout(Request $request)
     {
-        // Revoke current token
         $user = $request->user();
-        $user->currentAccessToken()->delete();
+
         event(new UserLoggedOut($user, $request->ip(), $request->userAgent()));
 
+        $user->currentAccessToken()->delete();
+
         return response()->json([
-            'success' => true,
-            'message' => 'Logout successful',
+            'message' => 'Logged out successfully',
         ], 200);
     }
 
-    // ...existing code...
+    /**
+     * Get current user information.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function me(Request $request)
     {
         $user = $request->user();
-        $user->load('role.permissions');
 
         return response()->json([
-            'success' => true,
             'data' => [
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'username' => $user->username,
+                    'role_id' => $user->role_id,
                     'is_active' => $user->is_active,
                     'created_at' => $user->created_at,
                     'role' => $user->role ? [

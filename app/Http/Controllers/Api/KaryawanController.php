@@ -207,7 +207,7 @@ class KaryawanController extends Controller
     {
         $this->service->delete($karyawan);
 
-        return response()->json(['message' => 'Delete karyawan successful']);
+        return response()->json(['message' => 'Delete Karyawan successful']);
     }
 
     /**

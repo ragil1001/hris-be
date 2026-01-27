@@ -3,31 +3,21 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Events\UserLoggedIn;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
-/**
- * Service class for authentication logic.
- *
- * @package App\Services
- */
 class AuthService
 {
     /**
-     * Attempt to authenticate user by username and password.
+     * Attempt to authenticate the user.
      *
      * @param string $username
      * @param string $password
-     * @return User
-     * @throws ValidationException
+     * @return \App\Models\User
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function attemptLogin(string $username, string $password): User
     {
-        // Sanitize input
-        $username = trim($username);
-        $password = trim($password);
-
         $user = User::where('username', $username)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
@@ -42,8 +32,6 @@ class AuthService
             ]);
         }
 
-        // Fire login event
-        event(new UserLoggedIn($user, request()->ip(), request()->userAgent()));
         return $user;
     }
 }

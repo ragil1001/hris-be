@@ -11,10 +11,17 @@ class CheckPermission
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @param string $permission
+     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $permission): Response
     {
+        if (!$request->user() || !$request->user()->hasPermission($permission)) {
+            abort(403, 'Unauthorized');
+        }
+
         return $next($request);
     }
 }
