@@ -6,7 +6,14 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use App\Events\KaryawanCreated;
 use App\Events\KaryawanUpdated;
 use App\Events\KaryawanDeleted;
+use App\Events\UserLoggedIn;
+use App\Events\UserLoggedOut;
+use App\Events\ProjectCreated;
+use App\Events\ProjectUpdated;
+use App\Events\ProjectDeleted;
 use App\Listeners\LogKaryawanActivity;
+use App\Listeners\LogUserLoginLogout;
+use App\Listeners\LogProjectActivity;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -25,6 +32,15 @@ class EventServiceProvider extends ServiceProvider
         ],
         KaryawanDeleted::class => [
             LogKaryawanActivity::class,
+        ],
+        ProjectCreated::class => [
+            LogProjectActivity::class,
+        ],
+        ProjectUpdated::class => [
+            LogProjectActivity::class,
+        ],
+        ProjectDeleted::class => [
+            LogProjectActivity::class,
         ],
     ];
 

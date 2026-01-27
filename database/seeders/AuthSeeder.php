@@ -21,20 +21,11 @@ class AuthSeeder extends Seeder
             ]
         );
 
-        $managerRole = Role::firstOrCreate(
-            ['name' => 'manager'],
-            [
-                'display_name' => 'Manager',
-                'description' => 'Manager role',
-                'is_active' => true,
-            ]
-        );
-
         $hrdRole = Role::firstOrCreate(
             ['name' => 'hrd'],
             [
                 'display_name' => 'HRD',
-                'description' => 'Human Resource Department',
+                'description' => 'Human Resources Department',
                 'is_active' => true,
             ]
         );
@@ -43,42 +34,36 @@ class AuthSeeder extends Seeder
             ['name' => 'employee'],
             [
                 'display_name' => 'Employee',
-                'description' => 'Standard employee access',
+                'description' => 'Regular employee',
                 'is_active' => true,
             ]
         );
 
         $permissions = [
-            ['name' => 'karyawan.view', 'display_name' => 'View Karyawan', 'group' => 'karyawan'],
-            ['name' => 'karyawan.create', 'display_name' => 'Create Karyawan', 'group' => 'karyawan'],
+            ['name' => 'karyawan.view', 'display_name' => 'Lihat Karyawan', 'group' => 'karyawan'],
+            ['name' => 'karyawan.create', 'display_name' => 'Buat Karyawan', 'group' => 'karyawan'],
             ['name' => 'karyawan.edit', 'display_name' => 'Edit Karyawan', 'group' => 'karyawan'],
-            ['name' => 'karyawan.delete', 'display_name' => 'Delete Karyawan', 'group' => 'karyawan'],
+            ['name' => 'karyawan.delete', 'display_name' => 'Hapus Karyawan', 'group' => 'karyawan'],
+            ['name' => 'project.view', 'display_name' => 'Lihat Project', 'group' => 'project'],
+            ['name' => 'project.create', 'display_name' => 'Buat Project', 'group' => 'project'],
+            ['name' => 'project.edit', 'display_name' => 'Edit Project', 'group' => 'project'],
+            ['name' => 'project.delete', 'display_name' => 'Hapus Project', 'group' => 'project'],
         ];
 
-        foreach ($permissions as $perm) {
-            Permission::firstOrCreate(['name' => $perm['name']], $perm);
+        foreach ($permissions as $p) {
+            $permission = Permission::firstOrCreate(['name' => $p['name']], $p);
+            if (in_array($p['group'], ['karyawan', 'project'])) {
+                $adminRole->permissions()->syncWithoutDetaching($permission);
+                $hrdRole->permissions()->syncWithoutDetaching($permission);
+            }
         }
-
-        $adminRole->permissions()->sync(Permission::pluck('id'));
-
-        $hrdRole->permissions()->attach(Permission::where('group', 'karyawan')->pluck('id'));
 
         User::firstOrCreate(
             ['username' => 'admin'],
             [
-                'name' => 'Admin User',
+                'name' => 'Super Admin',
                 'password' => Hash::make('password'),
                 'role_id' => $adminRole->id,
-                'is_active' => true,
-            ]
-        );
-
-        User::firstOrCreate(
-            ['username' => 'manager'],
-            [
-                'name' => 'Manager User',
-                'password' => Hash::make('password'),
-                'role_id' => $managerRole->id,
                 'is_active' => true,
             ]
         );

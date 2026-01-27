@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\KaryawanController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ProjectController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -23,8 +23,18 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:karyawan.edit')->group(function () {
         Route::patch('/karyawan/{karyawan}/reset-password', [KaryawanController::class, 'resetPassword']);
         Route::patch('/karyawan/{karyawan}/{section}', [KaryawanController::class, 'updateSection']);
-
     });
 
     Route::middleware('permission:karyawan.delete')->delete('/karyawan/{karyawan}', [KaryawanController::class, 'destroy']);
+
+    Route::middleware('permission:project.view')->group(function () {
+        Route::get('/projects', [ProjectController::class, 'index']);
+        Route::get('/projects/{project}', [ProjectController::class, 'show']);
+    });
+
+    Route::middleware('permission:project.create')->post('/projects', [ProjectController::class, 'store']);
+
+    Route::middleware('permission:project.edit')->patch('/projects/{project}/{section}', [ProjectController::class, 'updateSection']);
+
+    Route::middleware('permission:project.delete')->delete('/projects/{project}', [ProjectController::class, 'destroy']);
 });

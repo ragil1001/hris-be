@@ -28,4 +28,14 @@ class Project extends Model
     protected $casts = [
         'pengecualian_formasi' => 'array',
     ];
+
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class);
+    }
+
+    public function getStatusAttribute(): string
+    {
+        return $this->is_active ? 'AKTIF' : 'NONAKTIF';
+    }
 }
