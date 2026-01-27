@@ -11,9 +11,21 @@ use App\Events\UserLoggedOut;
 use App\Events\ProjectCreated;
 use App\Events\ProjectUpdated;
 use App\Events\ProjectDeleted;
+use App\Events\JabatanCreated;
+use App\Events\JabatanUpdated;
+use App\Events\JabatanDeleted;
+use App\Events\FormasiCreated;
+use App\Events\FormasiUpdated;
+use App\Events\FormasiDeleted;
+use App\Events\IzinCreated;
+use App\Events\IzinUpdated;
+use App\Events\IzinDeleted;
 use App\Listeners\LogKaryawanActivity;
 use App\Listeners\LogUserLoginLogout;
 use App\Listeners\LogProjectActivity;
+use App\Listeners\LogJabatanActivity;
+use App\Listeners\LogFormasiActivity;
+use App\Listeners\LogIzinActivity;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -41,6 +53,33 @@ class EventServiceProvider extends ServiceProvider
         ],
         ProjectDeleted::class => [
             LogProjectActivity::class,
+        ],
+        JabatanCreated::class => [
+            LogJabatanActivity::class,
+        ],
+        JabatanUpdated::class => [
+            LogJabatanActivity::class,
+        ],
+        JabatanDeleted::class => [
+            LogJabatanActivity::class,
+        ],
+        FormasiCreated::class => [
+            LogFormasiActivity::class,
+        ],
+        FormasiUpdated::class => [
+            LogFormasiActivity::class,
+        ],
+        FormasiDeleted::class => [
+            LogFormasiActivity::class,
+        ],
+        IzinCreated::class => [
+            LogIzinActivity::class,
+        ],
+        IzinUpdated::class => [
+            LogIzinActivity::class,
+        ],
+        IzinDeleted::class => [
+            LogIzinActivity::class,
         ],
     ];
 

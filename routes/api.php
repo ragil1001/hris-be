@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\KaryawanController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\JabatanController;
+use App\Http\Controllers\Api\FormasiController;
+use App\Http\Controllers\Api\IzinController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -14,18 +17,15 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 
     Route::middleware('permission:karyawan.view')->group(function () {
-        Route::get('/karyawan', [KaryawanController::class, 'index']);
-        Route::get('/karyawan/{karyawan}', [KaryawanController::class, 'show']);
+        Route::get('/karyawans', [KaryawanController::class, 'index']);
+        Route::get('/karyawans/{karyawan}', [KaryawanController::class, 'show']);
     });
 
-    Route::middleware('permission:karyawan.create')->post('/karyawan', [KaryawanController::class, 'store']);
+    Route::middleware('permission:karyawan.create')->post('/karyawans', [KaryawanController::class, 'store']);
 
-    Route::middleware('permission:karyawan.edit')->group(function () {
-        Route::patch('/karyawan/{karyawan}/reset-password', [KaryawanController::class, 'resetPassword']);
-        Route::patch('/karyawan/{karyawan}/{section}', [KaryawanController::class, 'updateSection']);
-    });
+    Route::middleware('permission:karyawan.edit')->patch('/karyawans/{karyawan}/{section}', [KaryawanController::class, 'updateSection']);
 
-    Route::middleware('permission:karyawan.delete')->delete('/karyawan/{karyawan}', [KaryawanController::class, 'destroy']);
+    Route::middleware('permission:karyawan.delete')->delete('/karyawans/{karyawan}', [KaryawanController::class, 'destroy']);
 
     Route::middleware('permission:project.view')->group(function () {
         Route::get('/projects', [ProjectController::class, 'index']);
@@ -37,4 +37,37 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:project.edit')->patch('/projects/{project}/{section}', [ProjectController::class, 'updateSection']);
 
     Route::middleware('permission:project.delete')->delete('/projects/{project}', [ProjectController::class, 'destroy']);
+
+    Route::middleware('permission:jabatan.view')->group(function () {
+        Route::get('/jabatans', [JabatanController::class, 'index']);
+        Route::get('/jabatans/{jabatan}', [JabatanController::class, 'show']);
+    });
+
+    Route::middleware('permission:jabatan.create')->post('/jabatans', [JabatanController::class, 'store']);
+
+    Route::middleware('permission:jabatan.edit')->patch('/jabatans/{jabatan}', [JabatanController::class, 'update']);
+
+    Route::middleware('permission:jabatan.delete')->delete('/jabatans/{jabatan}', [JabatanController::class, 'destroy']);
+
+    Route::middleware('permission:formasi.view')->group(function () {
+        Route::get('/formasis', [FormasiController::class, 'index']);
+        Route::get('/formasis/{formasi}', [FormasiController::class, 'show']);
+    });
+
+    Route::middleware('permission:formasi.create')->post('/formasis', [FormasiController::class, 'store']);
+
+    Route::middleware('permission:formasi.edit')->patch('/formasis/{formasi}', [FormasiController::class, 'update']);
+
+    Route::middleware('permission:formasi.delete')->delete('/formasis/{formasi}', [FormasiController::class, 'destroy']);
+
+    Route::middleware('permission:izin.view')->group(function () {
+        Route::get('/izins', [IzinController::class, 'index']);
+        Route::get('/izins/{izin}', [IzinController::class, 'show']);
+    });
+
+    Route::middleware('permission:izin.create')->post('/izins', [IzinController::class, 'store']);
+
+    Route::middleware('permission:izin.edit')->patch('/izins/{izin}', [IzinController::class, 'update']);
+
+    Route::middleware('permission:izin.delete')->delete('/izins/{izin}', [IzinController::class, 'destroy']);
 });
