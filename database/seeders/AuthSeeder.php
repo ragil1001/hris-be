@@ -10,12 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Create Roles (use firstOrCreate to avoid duplicates)
         $adminRole = Role::firstOrCreate(
             ['name' => 'admin'],
             [
@@ -29,7 +25,16 @@ class AuthSeeder extends Seeder
             ['name' => 'manager'],
             [
                 'display_name' => 'Manager',
-                'description' => 'Project manager with limited access',
+                'description' => 'Manager role',
+                'is_active' => true,
+            ]
+        );
+
+        $hrdRole = Role::firstOrCreate(
+            ['name' => 'hrd'],
+            [
+                'display_name' => 'HRD',
+                'description' => 'Human Resource Department',
                 'is_active' => true,
             ]
         );
@@ -38,57 +43,26 @@ class AuthSeeder extends Seeder
             ['name' => 'employee'],
             [
                 'display_name' => 'Employee',
-                'description' => 'Regular employee',
+                'description' => 'Standard employee access',
                 'is_active' => true,
             ]
         );
 
-        // Create Permissions
         $permissions = [
-            // User management
-            ['name' => 'user.view', 'display_name' => 'View Users', 'group' => 'user'],
-            ['name' => 'user.create', 'display_name' => 'Create User', 'group' => 'user'],
-            ['name' => 'user.update', 'display_name' => 'Update User', 'group' => 'user'],
-            ['name' => 'user.delete', 'display_name' => 'Delete User', 'group' => 'user'],
-
-            // Role management
-            ['name' => 'role.view', 'display_name' => 'View Roles', 'group' => 'role'],
-            ['name' => 'role.create', 'display_name' => 'Create Role', 'group' => 'role'],
-            ['name' => 'role.update', 'display_name' => 'Update Role', 'group' => 'role'],
-            ['name' => 'role.delete', 'display_name' => 'Delete Role', 'group' => 'role'],
-
-            // Employee management
-            ['name' => 'employee.view', 'display_name' => 'View Employees', 'group' => 'employee'],
-            ['name' => 'employee.create', 'display_name' => 'Create Employee', 'group' => 'employee'],
-            ['name' => 'employee.update', 'display_name' => 'Update Employee', 'group' => 'employee'],
-            ['name' => 'employee.delete', 'display_name' => 'Delete Employee', 'group' => 'employee'],
+            ['name' => 'karyawan.view', 'display_name' => 'View Karyawan', 'group' => 'karyawan'],
+            ['name' => 'karyawan.create', 'display_name' => 'Create Karyawan', 'group' => 'karyawan'],
+            ['name' => 'karyawan.edit', 'display_name' => 'Edit Karyawan', 'group' => 'karyawan'],
+            ['name' => 'karyawan.delete', 'display_name' => 'Delete Karyawan', 'group' => 'karyawan'],
         ];
 
-        foreach ($permissions as $permData) {
-            Permission::firstOrCreate(
-                ['name' => $permData['name']],
-                array_merge($permData, ['is_active' => true])
-            );
+        foreach ($permissions as $perm) {
+            Permission::firstOrCreate(['name' => $perm['name']], $perm);
         }
 
-        // Assign all permissions to admin (if not already assigned)
-        if ($adminRole->permissions()->count() === 0) {
-            $adminRole->permissions()->attach(Permission::all());
-        }
+        $adminRole->permissions()->sync(Permission::pluck('id'));
 
-        // Assign limited permissions to manager
-        if ($managerRole->permissions()->count() === 0) {
-            $managerRole->permissions()->attach(
-                Permission::whereIn('name', [
-                    'user.view',
-                    'employee.view',
-                    'employee.create',
-                    'employee.update',
-                ])->get()
-            );
-        }
+        $hrdRole->permissions()->attach(Permission::where('group', 'karyawan')->pluck('id'));
 
-        // Create default admin user
         User::firstOrCreate(
             ['username' => 'admin'],
             [
@@ -99,7 +73,6 @@ class AuthSeeder extends Seeder
             ]
         );
 
-        // Create manager user
         User::firstOrCreate(
             ['username' => 'manager'],
             [
@@ -110,7 +83,16 @@ class AuthSeeder extends Seeder
             ]
         );
 
-        // Create employee user
+        User::firstOrCreate(
+            ['username' => 'hrd'],
+            [
+                'name' => 'HRD User',
+                'password' => Hash::make('password'),
+                'role_id' => $hrdRole->id,
+                'is_active' => true,
+            ]
+        );
+
         User::firstOrCreate(
             ['username' => 'employee'],
             [

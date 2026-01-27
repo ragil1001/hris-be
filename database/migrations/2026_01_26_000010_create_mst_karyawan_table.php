@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,44 +9,47 @@ return new class extends Migration {
     {
         Schema::create('mst.karyawan', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('nik')->unique()->index();
-            $table->string('password');
             $table->string('nama')->index();
             $table->date('tanggal_masuk')->index();
             $table->date('tanggal_resign')->nullable()->index();
             $table->date('tanggal_aktif')->index();
-            $table->enum('status_aktif', ['AKTIF', 'RESIGN'])->index();
-            $table->enum('control_status', ['KONTRAK', 'HARIAN'])->index();
-            $table->text('keterangan')->nullable();
-            $table->enum('jenis_kelamin', ['L', 'P'])->index();
-            $table->date('tanggal_lahir');
-            $table->unsignedSmallInteger('umur_tahun')->index();
-            $table->string('agama');
-            $table->string('email')->unique()->index();
-            $table->string('no_telp');
-            $table->text('alamat');
-            $table->string('rt', 5);
-            $table->string('rw', 5);
-            $table->string('kelurahan');
-            $table->string('kecamatan');
-            $table->string('kabupaten');
-            $table->string('kode_pos', 10);
-            $table->string('pendidikan_terakhir');
-            $table->string('golongan_darah', 3);
-            $table->string('status_tk');
-            $table->string('no_kk');
-            $table->string('no_ktp')->unique();
-            $table->string('bpjs_ketenagakerjaan')->nullable();
-            $table->string('npp_bpjs_ketenagakerjaan')->nullable();
-            $table->string('bpjs_kesehatan')->nullable();
+            $table->enum('status_karyawan', ['KONTRAK', 'TETAP']);
+            $table->enum('jenis_kelamin', ['L', 'P']);
+            $table->string('tempat_lahir')->nullable();
+            $table->date('tanggal_lahir')->nullable();
+            $table->string('agama')->nullable();
+            $table->string('golongan_darah')->nullable();
+            $table->string('no_telepon')->nullable();
+            $table->string('no_wa')->nullable();
+            $table->string('email')->nullable();
+            $table->string('alamat')->nullable();
+            $table->string('rt_rw')->nullable();
+            $table->string('kelurahan')->nullable();
+            $table->string('kecamatan')->nullable();
+            $table->string('kabupaten_kota')->nullable();
+            $table->string('kode_pos')->nullable();
+            $table->string('no_ktp')->nullable();
+            $table->string('no_kk')->nullable();
+            $table->string('no_bpjs_kesehatan')->nullable();
+            $table->string('npp_bpjs_kesehatan')->nullable();
             $table->string('bu_bpjs_kesehatan')->nullable();
-            $table->foreignId('bank_id')->constrained('mst.bank');
-            $table->string('no_rekening');
-            $table->string('jaminan_pensiun')->nullable();
-            $table->string('bu')->nullable();
-            $table->decimal('gaji', 15, 2);
+            $table->string('no_bpjs_ketenagakerjaan')->nullable();
+            $table->string('npp_bpjs_ketenagakerjaan')->nullable();
+            $table->string('no_npwp')->nullable();
+            $table->enum('status_pernikahan', ['MENIKAH', 'BELUM_MENIKAH', 'CERAI'])->nullable();
+            $table->unsignedTinyInteger('jumlah_anak')->default(0);
+            $table->string('pendidikan_terakhir')->nullable();
+            $table->string('nama_institusi')->nullable();
+            $table->year('tahun_lulus')->nullable();
+            $table->string('no_rekening')->nullable();
+            $table->string('nama_rekening')->nullable();
+            $table->foreignId('bank_id')->nullable()->constrained('mst.bank');
+            $table->decimal('gaji_pokok', 15, 2)->default(0);
             $table->decimal('insentif', 15, 2)->default(0);
             $table->decimal('uang_makan', 15, 2)->default(0);
+            $table->decimal('potongan', 15, 2)->default(0);
             $table->foreignId('formasi_id')->nullable()->constrained('mst.formasi');
             $table->foreignId('jabatan_id')->nullable()->constrained('mst.jabatan');
             $table->foreignId('unit_kerja_id')->constrained('mst.unit_kerja');
@@ -54,7 +58,10 @@ return new class extends Migration {
             $table->date('masa_berlaku_cuti')->nullable();
             $table->unsignedSmallInteger('potongan_cuti_bersama')->default(0);
             $table->unsignedSmallInteger('sisa_cuti')->default(12);
+            $table->text('keterangan')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+            $table->foreign('user_id')->references('id')->on('auth.users')->onDelete('set null');
         });
     }
 

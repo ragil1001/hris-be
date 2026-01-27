@@ -3,10 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
-use App\Events\UserLoggedIn;
-use App\Events\UserLoggedOut;
-use App\Listeners\LogUserLoginLogout;
+use App\Events\KaryawanCreated;
+use App\Events\KaryawanUpdated;
+use App\Events\KaryawanDeleted;
+use App\Listeners\LogKaryawanActivity;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -16,6 +16,15 @@ class EventServiceProvider extends ServiceProvider
         ],
         UserLoggedOut::class => [
             LogUserLoginLogout::class,
+        ],
+        KaryawanCreated::class => [
+            LogKaryawanActivity::class,
+        ],
+        KaryawanUpdated::class => [
+            LogKaryawanActivity::class,
+        ],
+        KaryawanDeleted::class => [
+            LogKaryawanActivity::class,
         ],
     ];
 

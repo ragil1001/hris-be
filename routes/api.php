@@ -1,44 +1,30 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\KaryawanController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
-
-// Public routes
 Route::prefix('v1')->group(function () {
-    // Authentication
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1'); // 10 attempts per minute
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 });
 
-// Protected routes - requires authentication
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
-    // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Example: Admin only routes
-    // Route::middleware('role:admin')->group(function () {
-    //     Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
-    // });
+    Route::middleware('permission:karyawan.view')->group(function () {
+        Route::get('/karyawan', [KaryawanController::class, 'index']);
+        Route::get('/karyawan/{karyawan}', [KaryawanController::class, 'show']);
+    });
 
-    // Example: Multiple roles
-    // Route::middleware('role:admin,manager')->group(function () {
-    //     Route::get('/reports', [ReportController::class, 'index']);
-    // });
+    Route::middleware('permission:karyawan.create')->post('/karyawan', [KaryawanController::class, 'store']);
 
-    // Example: Permission-based
-    // Route::middleware('permission:user.create')->group(function () {
-    //     Route::post('/users', [UserController::class, 'store']);
-    // });
+    Route::middleware('permission:karyawan.edit')->group(function () {
+        Route::patch('/karyawan/{karyawan}/reset-password', [KaryawanController::class, 'resetPassword']);
+        Route::patch('/karyawan/{karyawan}/{section}', [KaryawanController::class, 'updateSection']);
+
+    });
+
+    Route::middleware('permission:karyawan.delete')->delete('/karyawan/{karyawan}', [KaryawanController::class, 'destroy']);
 });
