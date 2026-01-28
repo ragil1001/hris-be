@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\JabatanService;
 use App\Models\Jabatan;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class JabatanController extends Controller
@@ -34,9 +35,10 @@ class JabatanController extends Controller
             }
         }
 
-        $jabatans = $query->orderBy('nama_jabatan')->paginate(20);
+        $perPage = $request->input('per_page', 10);
+        $jabatans = $query->orderBy('nama_jabatan')->paginate($perPage);
 
-        return response()->json(['data' => $jabatans]);
+        return response()->json($jabatans);
     }
 
     public function show(Jabatan $jabatan)
@@ -44,10 +46,33 @@ class JabatanController extends Controller
         return response()->json(['data' => $jabatan]);
     }
 
+
     public function store(Request $request)
     {
-        $validated = $request->validate($this->getValidationRules());
+        $namaJabatan = $request->input('nama_jabatan');
+        
+        // Check FIRST if jabatan with same name (case-insensitive) exists but is inactive
+        if ($namaJabatan) {
+            $existingInactive = Jabatan::where('nama_jabatan', 'ilike', $namaJabatan)
+                ->where('is_active', false)
+                ->first();
 
+            if ($existingInactive) {
+                // Reactivate the existing jabatan instead of creating new one
+                $existingInactive->update(['is_active' => true]);
+                return response()->json([
+                    'data' => $existingInactive,
+                    'message' => 'Jabatan berhasil diaktifkan kembali'
+                ], 200);
+            }
+        }
+
+        // Only validate if no inactive record to reactivate
+        $validated = $request->validate($this->getValidationRules(), [], [
+            'nama_jabatan' => 'Nama Jabatan'
+        ]);
+
+        // Create new jabatan
         $jabatan = $this->service->create($validated);
 
         return response()->json(['data' => $jabatan], 201);
@@ -55,7 +80,28 @@ class JabatanController extends Controller
 
     public function update(Request $request, Jabatan $jabatan)
     {
-        $validated = $request->validate($this->getValidationRules());
+        // Validate but ignore current record for unique check
+        $validated = $request->validate([
+            'nama_jabatan' => [
+                'required',
+                'string',
+                'max:255',
+                // Custom case-insensitive unique validation ignoring self
+                function ($attribute, $value, $fail) use ($jabatan) {
+                    $exists = Jabatan::where('nama_jabatan', 'ilike', $value)
+                        ->where('is_active', true)
+                        ->where('id', '!=', $jabatan->id)
+                        ->exists();
+                    
+                    if ($exists) {
+                        $fail('Nama Jabatan sudah digunakan.');
+                    }
+                },
+            ],
+            'is_active' => 'boolean',
+        ], [], [
+            'nama_jabatan' => 'Nama Jabatan'
+        ]);
 
         $this->service->update($jabatan, $validated);
 
@@ -64,15 +110,30 @@ class JabatanController extends Controller
 
     public function destroy(Jabatan $jabatan)
     {
-        $this->service->delete($jabatan);
+        // Soft delete: set is_active to false instead of deleting
+        $jabatan->update(['is_active' => false]);
 
-        return response()->json(['message' => 'Deleted successfully']);
+        return response()->json(['message' => 'Jabatan berhasil dinonaktifkan']);
     }
 
     protected function getValidationRules(): array
     {
         return [
-            'nama_jabatan' => 'required|string|max:255|unique:jabatan,nama_jabatan',
+            'nama_jabatan' => [
+                'required',
+                'string',
+                'max:255',
+                // Custom case-insensitive unique validation
+                function ($attribute, $value, $fail) {
+                    $exists = Jabatan::where('nama_jabatan', 'ilike', $value)
+                        ->where('is_active', true)
+                        ->exists();
+                    
+                    if ($exists) {
+                        $fail('Nama Jabatan sudah digunakan.');
+                    }
+                },
+            ],
             'is_active' => 'boolean',
         ];
     }

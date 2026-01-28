@@ -21,12 +21,15 @@ class Project extends Model
         'longitude',
         'latitude',
         'radius_absensi',
-        'pengecualian_formasi',
         'waktu_toleransi',
     ];
 
+    protected $appends = ['status'];
+
     protected $casts = [
-        'pengecualian_formasi' => 'array',
+        'is_active' => 'boolean',
+        'radius_absensi' => 'integer',
+        'waktu_toleransi' => 'integer',
     ];
 
     public function shifts()
@@ -37,5 +40,16 @@ class Project extends Model
     public function getStatusAttribute(): string
     {
         return $this->is_active ? 'AKTIF' : 'NONAKTIF';
+    }
+
+    public function izins()
+    {
+        return $this->belongsToMany(Izin::class, 'mst.project_izin', 'project_id', 'izin_id');
+    }
+
+    public function formasis()
+    {
+        return $this->belongsToMany(Formasi::class, 'mst.project_formasi', 'project_id', 'formasi_id')
+            ->withPivot('is_active');
     }
 }

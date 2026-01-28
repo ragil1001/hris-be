@@ -10,7 +10,7 @@ return new class extends Migration {
             $table->id();
             $table->string('kategori');
             $table->string('sub_kategori')->nullable();
-            $table->unsignedSmallInteger('jumlah_hari')->default(1);
+            $table->unsignedSmallInteger('jumlah_hari')->nullable();
             $table->boolean('is_active')->default(1)->index();
             $table->timestamps();
         });

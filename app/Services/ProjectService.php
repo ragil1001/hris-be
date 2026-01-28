@@ -14,11 +14,30 @@ class ProjectService
     {
         $data['is_active'] = $data['is_active'] ?? true;
 
-        if (isset($data['pengecualian_formasi'])) {
-            $data['pengecualian_formasi'] = json_encode($data['pengecualian_formasi']);
+        $project = Project::create($data);
+
+        // Handle Pengecualian Radius (Formasi)
+        if (isset($data['formasis'])) {
+            $project->formasis()->sync($data['formasis']);
         }
 
-        $project = Project::create($data);
+        // Handle Izin (Permissions)
+        $izinsToAttach = $data['izins'] ?? [];
+        
+        // Auto-attach "Sakit" and "Izin Umum" if not already selected (though sync will handle uniqueness)
+        // Find IDs for "Sakit" and "Keterangan Pribadi" (Izin Umum) based on Kategori/Sub
+        // Assuming we look them up or they are passed.
+        // Better: Look them up by name to be safe.
+        $defaultIzins = \App\Models\Izin::where(function($q) {
+            $q->whereNull('sub_kategori')
+              ->whereIn('kategori', ['Sakit', 'Izin Umum']);
+        })->orWhere(function($q) {
+             // Backup or specific matching if needed
+             $q->where('kategori', 'Sakit');
+        })->pluck('id')->toArray();
+        
+        $allIzins = array_unique(array_merge($izinsToAttach, $defaultIzins));
+        $project->izins()->sync($allIzins);
 
         if (!empty($data['shifts'])) {
             $shiftsData = collect($data['shifts'])->map(function ($shift) {
@@ -33,6 +52,9 @@ class ProjectService
         }
 
         event(new ProjectCreated($project, Auth::id()));
+
+        // Reload relations for response
+        $project->load(['izins', 'formasis', 'shifts']);
 
         return $project;
     }
@@ -52,10 +74,40 @@ class ProjectService
         } elseif ($section === 'pengaturan_absensi') {
             if (isset($data['radius_absensi'])) $changes['radius_absensi'] = $data['radius_absensi'];
             if (isset($data['waktu_toleransi'])) $changes['waktu_toleransi'] = $data['waktu_toleransi'];
-        } elseif ($section === 'pengecualian_formasi') {
-            $changes['pengecualian_formasi'] = json_encode($data['pengecualian_formasi'] ?? []);
-        }
+            
+            // Handle Relation Updates in this section if passed
+            if (isset($data['formasis'])) {
+               $project->formasis()->sync($data['formasis']);
+               // We don't track relation changes in $changes array for simple audit log yet, or we could add a note.
+            }
+            if (isset($data['izins'])) {
+                 // Ensure defaults are kept
+                $defaultIzins = \App\Models\Izin::where(function($q) {
+                    $q->whereNull('sub_kategori')
+                    ->whereIn('kategori', ['Sakit', 'Izin Umum']);
+                })->pluck('id')->toArray();
+                
+                $allIzins = array_unique(array_merge($data['izins'], $defaultIzins));
+                $project->izins()->sync($allIzins);
+            }
+        } elseif ($section === 'shift_project') {
+             if (isset($data['shifts'])) {
+                // Delete existing shifts
+                $project->shifts()->delete();
 
+                // Create new shifts
+                $shiftsData = collect($data['shifts'])->map(function ($shift) {
+                    return [
+                        'kode_shift' => $shift['kode_shift'],
+                        'waktu_mulai' => $shift['waktu_mulai'],
+                        'waktu_selesai' => $shift['waktu_selesai'],
+                    ];
+                })->toArray();
+
+                $project->shifts()->createMany($shiftsData);
+             }
+        } 
+        
         if (!empty($changes)) {
             $project->update($changes);
             event(new ProjectUpdated($project, Auth::id(), $changes));
@@ -64,7 +116,8 @@ class ProjectService
 
     public function delete(Project $project): void
     {
-        $project->update(['is_active' => false]);
+        Project::where('id', $project->id)->update(['is_active' => 0]);
+        
         event(new ProjectDeleted($project, Auth::id()));
     }
 }

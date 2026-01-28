@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\JabatanController;
 use App\Http\Controllers\Api\FormasiController;
 use App\Http\Controllers\Api\IzinController;
+use App\Http\Controllers\Api\BankController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -35,6 +36,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:project.create')->post('/projects', [ProjectController::class, 'store']);
 
     Route::middleware('permission:project.edit')->patch('/projects/{project}/{section}', [ProjectController::class, 'updateSection']);
+
+    Route::middleware('permission:project.edit')->patch('/projects/{project}/reactivate', [ProjectController::class, 'reactivate']);
 
     Route::middleware('permission:project.delete')->delete('/projects/{project}', [ProjectController::class, 'destroy']);
 
@@ -70,4 +73,16 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:izin.edit')->patch('/izins/{izin}', [IzinController::class, 'update']);
 
     Route::middleware('permission:izin.delete')->delete('/izins/{izin}', [IzinController::class, 'destroy']);
+
+    // Bank routes
+    Route::middleware('permission:bank.view')->group(function () {
+        Route::get('/banks', [BankController::class, 'index']);
+        Route::get('/banks/{bank}', [BankController::class, 'show']);
+    });
+
+    Route::middleware('permission:bank.create')->post('/banks', [BankController::class, 'store']);
+
+    Route::middleware('permission:bank.edit')->patch('/banks/{bank}', [BankController::class, 'update']);
+
+    Route::middleware('permission:bank.delete')->delete('/banks/{bank}', [BankController::class, 'destroy']);
 });

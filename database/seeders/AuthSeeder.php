@@ -69,6 +69,12 @@ class AuthSeeder extends Seeder
             ['name' => 'izin.create', 'display_name' => 'Create Izin', 'group' => 'izin'],
             ['name' => 'izin.edit', 'display_name' => 'Edit Izin', 'group' => 'izin'],
             ['name' => 'izin.delete', 'display_name' => 'Delete Izin', 'group' => 'izin'],
+
+            // Bank permissions
+            ['name' => 'bank.view', 'display_name' => 'View Bank', 'group' => 'bank'],
+            ['name' => 'bank.create', 'display_name' => 'Create Bank', 'group' => 'bank'],
+            ['name' => 'bank.edit', 'display_name' => 'Edit Bank', 'group' => 'bank'],
+            ['name' => 'bank.delete', 'display_name' => 'Delete Bank', 'group' => 'bank'],
         ];
 
         foreach ($permissions as $perm) {
