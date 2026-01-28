@@ -119,11 +119,6 @@ class Karyawan extends Model
         return $this->hasOne(AyahIbu::class);
     }
 
-    public function trainings(): HasMany
-    {
-        return $this->hasMany(Training::class);
-    }
-
     public function getUmurAttribute(): ?int
     {
         return $this->tanggal_lahir ? Carbon::parse($this->tanggal_lahir)->age : null;

@@ -109,7 +109,7 @@ class KaryawanController extends Controller
      */
     public function show(Karyawan $karyawan): \Illuminate\Http\JsonResponse
     {
-        $karyawan->load(['user', 'bank', 'formasi', 'jabatan', 'unitKerja', 'penempatan', 'keluarga', 'ayahIbu', 'trainings']);
+        $karyawan->load(['user', 'bank', 'formasi', 'jabatan', 'unitKerja', 'penempatan', 'keluarga', 'ayahIbu']);
 
         $data = [
             'data_pribadi' => [
