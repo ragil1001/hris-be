@@ -3,9 +3,6 @@
 namespace App\Services;
 
 use App\Models\Formasi;
-use App\Events\FormasiCreated;
-use App\Events\FormasiUpdated;
-use App\Events\FormasiDeleted;
 use Illuminate\Support\Facades\Auth;
 
 class FormasiService
@@ -16,7 +13,7 @@ class FormasiService
 
         $formasi = Formasi::create($data);
 
-        event(new FormasiCreated($formasi, Auth::id()));
+        // event(new FormasiCreated($formasi, Auth::id()));
 
         return $formasi;
     }
@@ -27,13 +24,13 @@ class FormasiService
 
         if (!empty($changes)) {
             $formasi->update($changes);
-            event(new FormasiUpdated($formasi, Auth::id(), $changes));
+            // event(new FormasiUpdated($formasi, Auth::id(), $changes));
         }
     }
 
     public function delete(Formasi $formasi): void
     {
         $formasi->update(['is_active' => false]);
-        event(new FormasiDeleted($formasi, Auth::id()));
+        // event(new FormasiDeleted($formasi, Auth::id()));
     }
 }

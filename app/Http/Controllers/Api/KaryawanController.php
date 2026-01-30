@@ -31,9 +31,40 @@ class KaryawanController extends Controller
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
         $perPage = $request->input('per_page', 10);
-        $karyawan = Karyawan::with(['jabatan', 'formasi', 'penempatan'])
-            ->select('id', 'nik', 'nama', 'jabatan_id', 'formasi_id', 'penempatan_id', 'jenis_kelamin', 'sisa_cuti', 'deleted_at')
-            ->paginate($perPage);
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        $jabatanId = $request->input('jabatan_id');
+        $penempatanId = $request->input('penempatan_id');
+        $jenisKelamin = $request->input('jenis_kelamin');
+
+        $query = Karyawan::with(['jabatan', 'formasi', 'penempatan', 'unitKerja'])
+            ->latest('id');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'ilike', '%' . $search . '%')
+                  ->orWhere('nik', 'like', '%' . $search . '%');
+            });
+        }
+        
+        if ($status) {
+            $query->where('status', 'ilike', $status);
+        }
+
+        if ($jabatanId) {
+            $query->where('jabatan_id', $jabatanId);
+        }
+
+        if ($penempatanId) {
+            $query->where('penempatan_id', $penempatanId);
+        }
+
+        if ($jenisKelamin) {
+            $query->where('jenis_kelamin', $jenisKelamin);
+        }
+
+        $karyawan = $query->paginate($perPage);
 
         return response()->json($karyawan);
     }
@@ -50,7 +81,8 @@ class KaryawanController extends Controller
             'nama' => 'required|string|max:255',
             'tanggal_masuk' => 'required|date',
             'tanggal_aktif' => 'required|date',
-            'status_karyawan' => 'required|in:KONTRAK,TETAP',
+            'control_status' => 'required|in:KONTRAK,HARIAN',
+            'status' => 'required|in:AKTIF,RESIGN',
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir' => 'nullable|string|max:255',
             'tanggal_lahir' => 'required|date',
@@ -94,7 +126,7 @@ class KaryawanController extends Controller
             'potongan_cuti_bersama' => 'nullable|integer|min:0',
             'sisa_cuti' => 'nullable|integer|min:0',
             'keterangan' => 'nullable|string',
-        ]);
+        ], $this->getValidationMessages());
 
         $karyawan = $this->service->create($validated);
 
@@ -110,69 +142,8 @@ class KaryawanController extends Controller
     public function show(Karyawan $karyawan): \Illuminate\Http\JsonResponse
     {
         $karyawan->load(['user', 'bank', 'formasi', 'jabatan', 'unitKerja', 'penempatan', 'keluarga', 'ayahIbu']);
-
-        $data = [
-            'data_pribadi' => [
-                'nik' => $karyawan->nik,
-                'nama' => $karyawan->nama,
-                'jenis_kelamin' => $karyawan->jenis_kelamin,
-                'agama' => $karyawan->agama,
-                'tempat_lahir' => $karyawan->tempat_lahir,
-                'tanggal_lahir' => $karyawan->tanggal_lahir,
-                'umur' => $karyawan->umur,
-                'pendidikan_terakhir' => $karyawan->pendidikan_terakhir,
-                'golongan_darah' => $karyawan->golongan_darah,
-                'no_telepon' => $karyawan->no_telepon,
-                'no_wa' => $karyawan->no_wa,
-                'email' => $karyawan->email,
-                'status_pernikahan' => $karyawan->status_pernikahan,
-                'status' => $karyawan->status,
-            ],
-            'informasi_pekerjaan' => [
-                'jabatan' => $karyawan->jabatan ? $karyawan->jabatan->nama_jabatan : null,
-                'formasi' => $karyawan->formasi ? $karyawan->formasi->nama_formasi : null,
-                'penempatan' => $karyawan->penempatan ? $karyawan->penempatan->nama_project : null,
-                'unit_kerja' => $karyawan->unitKerja ? $karyawan->unitKerja->nama_unit : null,
-                'tanggal_masuk' => $karyawan->tanggal_masuk,
-                'lama_kerja' => $karyawan->lama_kerja,
-                'tanggal_aktif' => $karyawan->tanggal_aktif,
-                'tanggal_resign' => $karyawan->tanggal_resign,
-                'sisa_cuti_tahunan' => $karyawan->sisa_cuti,
-                'keterangan' => $karyawan->keterangan,
-            ],
-            'kompensasi' => [
-                'gaji' => $karyawan->gaji_pokok,
-                'insentif' => $karyawan->insentif,
-                'uang_makan' => $karyawan->uang_makan,
-            ],
-            'dokumen_identitas' => [
-                'no_kk' => $karyawan->no_kk,
-                'bpjs_ketenagakerjaan' => $karyawan->no_bpjs_ketenagakerjaan,
-                'npp_bpjs_ketenagakerjaan' => $karyawan->npp_bpjs_ketenagakerjaan,
-                'bpjs_kesehatan' => $karyawan->no_bpjs_kesehatan,
-                'npp_bpjs_kesehatan' => $karyawan->npp_bpjs_kesehatan,
-                'bu_bpjs_kesehatan' => $karyawan->bu_bpjs_kesehatan,
-            ],
-            'alamat' => [
-                'alamat_lengkap' => $karyawan->alamat,
-                'rt_rw' => $karyawan->rt_rw,
-                'kelurahan' => $karyawan->kelurahan,
-                'kecamatan' => $karyawan->kecamatan,
-                'kab_kota' => $karyawan->kabupaten_kota,
-                'kode_pos' => $karyawan->kode_pos,
-            ],
-            'informasi_keluarga' => [
-                'istri_suami' => $karyawan->keluarga->whereIn('hubungan', ['ISTRI', 'SUAMI'])->first(),
-                'anak' => $karyawan->keluarga->where('hubungan', 'ANAK'),
-                'orang_tua' => $karyawan->ayahIbu,
-            ],
-            'akses_akun' => [
-                'username' => $karyawan->user ? $karyawan->user->username : null,
-                'password' => '********',
-            ],
-        ];
-
-        return response()->json($data);
+        
+        return response()->json($karyawan);
     }
 
     /**
@@ -185,8 +156,8 @@ class KaryawanController extends Controller
      */
     public function updateSection(Request $request, Karyawan $karyawan, string $section): \Illuminate\Http\JsonResponse
     {
-        $rules = $this->getValidationRules($section);
-        $validated = $request->validate($rules);
+        $rules = $this->getValidationRules($section, $karyawan);
+        $validated = $request->validate($rules, $this->getValidationMessages());
 
         if ($section === 'informasi_keluarga') {
             $this->service->updateKeluarga($karyawan, $validated);
@@ -223,50 +194,61 @@ class KaryawanController extends Controller
         return response()->json(['message' => 'Password reset successful']);
     }
 
-    private function getValidationRules(string $section): array
+    private function getValidationRules(string $section, ?Karyawan $karyawan = null): array
     {
+        $uniqueNikRule = 'string|unique:karyawan,nik';
+        if ($karyawan) {
+            $uniqueNikRule .= ',' . $karyawan->id;
+        }
+
         $rules = [
             'data_pribadi' => [
-                'nik' => 'string|unique:karyawan,nik',
+                'nik' => $uniqueNikRule,
                 'nama' => 'string|max:255',
                 'jenis_kelamin' => 'in:L,P',
                 'agama' => 'string|max:50',
                 'tempat_lahir' => 'string|max:255',
                 'tanggal_lahir' => 'date',
-                'pendidikan_terakhir' => 'string|max:100',
-                'golongan_darah' => 'string|max:3',
-                'no_telepon' => 'string|max:20',
-                'no_wa' => 'string|max:20',
-                'email' => 'email|max:255',
-                'status_pernikahan' => 'in:MENIKAH,BELUM_MENIKAH,CERAI',
+                'pendidikan_terakhir' => 'string|max:100|nullable',
+                'golongan_darah' => 'string|max:3|nullable',
+                'no_telepon' => 'string|max:20|nullable',
+                'email' => 'email|max:255|nullable',
+                'status_pernikahan' => 'in:MENIKAH,BELUM_MENIKAH,CERAI|nullable',
             ],
             'informasi_pekerjaan' => [
                 'jabatan_id' => 'exists:jabatan,id',
                 'formasi_id' => 'exists:formasi,id',
-                'penempatan_id' => 'exists:project,id',
+                'penempatan_id' => 'exists:project,id|nullable',
                 'unit_kerja_id' => 'exists:unit_kerja,id',
+                'bu' => 'string|max:50|nullable', // Added Business Unit
                 'tanggal_masuk' => 'date',
                 'tanggal_aktif' => 'date',
                 'tanggal_resign' => 'date|nullable',
+                'control_status' => 'in:KONTRAK,HARIAN',
+                'status' => 'in:AKTIF,RESIGN',
                 'sisa_cuti' => 'integer|min:0',
                 'keterangan' => 'string|nullable',
             ],
             'kompensasi' => [
-                'gaji_pokok' => 'numeric|min:0',
-                'insentif' => 'numeric|min:0',
-                'uang_makan' => 'numeric|min:0',
+                'gaji_pokok' => 'numeric|min:0|nullable',
+                'insentif' => 'numeric|min:0|nullable',
+                'uang_makan' => 'numeric|min:0|nullable',
+                'bank_id' => 'exists:bank,id|nullable',
+                'no_rekening' => 'string|max:50|nullable',
+                'no_jaminan_pensiun' => 'string|max:50|nullable', // Added Jaminan Pensiun
             ],
             'dokumen_identitas' => [
                 'no_kk' => 'string|max:20|nullable',
                 'no_bpjs_ketenagakerjaan' => 'string|max:20|nullable',
                 'npp_bpjs_ketenagakerjaan' => 'string|max:20|nullable',
                 'no_bpjs_kesehatan' => 'string|max:20|nullable',
-                'npp_bpjs_kesehatan' => 'string|max:20|nullable',
                 'bu_bpjs_kesehatan' => 'string|max:20|nullable',
+                'no_ktp' => 'string|max:20|nullable', 
             ],
             'alamat' => [
                 'alamat' => 'string|nullable',
-                'rt_rw' => 'string|max:10|nullable',
+                'rt' => 'string|max:3|nullable',
+                'rw' => 'string|max:3|nullable',
                 'kelurahan' => 'string|max:255|nullable',
                 'kecamatan' => 'string|max:255|nullable',
                 'kabupaten_kota' => 'string|max:255|nullable',
@@ -298,5 +280,18 @@ class KaryawanController extends Controller
         ];
 
         return $rules[$section] ?? throw ValidationException::withMessages(['section' => 'Invalid section']);
+    }
+    private function getValidationMessages(): array
+    {
+        return [
+            'required' => ':attribute wajib diisi.',
+            'unique' => ':attribute sudah digunakan.',
+            'in' => ':attribute tidak valid.',
+            'exists' => ':attribute tidak ditemukan.',
+            'email' => 'Format email tidak valid.',
+            'integer' => ':attribute harus berupa angka.',
+            'date' => ':attribute format tanggal salah.',
+            'numeric' => ':attribute harus berupa angka.',
+        ];
     }
 }

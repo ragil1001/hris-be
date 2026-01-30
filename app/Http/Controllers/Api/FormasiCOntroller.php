@@ -36,7 +36,7 @@ class FormasiController extends Controller
         }
 
         $perPage = $request->input('per_page', 10);
-        $formasis = $query->orderBy('nama_formasi')->paginate($perPage);
+        $formasis = $query->latest('id')->paginate($perPage);
 
         return response()->json($formasis);
     }

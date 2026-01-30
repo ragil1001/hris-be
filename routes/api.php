@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\JabatanController;
 use App\Http\Controllers\Api\FormasiController;
 use App\Http\Controllers\Api\IzinController;
 use App\Http\Controllers\Api\BankController;
+use App\Http\Controllers\Api\UnitKerjaController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -85,4 +86,16 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:bank.edit')->patch('/banks/{bank}', [BankController::class, 'update']);
 
     Route::middleware('permission:bank.delete')->delete('/banks/{bank}', [BankController::class, 'destroy']);
+
+    // Unit Kerja routes
+    Route::middleware('permission:unit_kerja.view')->group(function () {
+        Route::get('/unit-kerjas', [UnitKerjaController::class, 'index']);
+        Route::get('/unit-kerjas/{unitKerja}', [UnitKerjaController::class, 'show']);
+    });
+
+    Route::middleware('permission:unit_kerja.create')->post('/unit-kerjas', [UnitKerjaController::class, 'store']);
+
+    Route::middleware('permission:unit_kerja.edit')->patch('/unit-kerjas/{unitKerja}', [UnitKerjaController::class, 'update']);
+
+    Route::middleware('permission:unit_kerja.delete')->delete('/unit-kerjas/{unitKerja}', [UnitKerjaController::class, 'destroy']);
 });

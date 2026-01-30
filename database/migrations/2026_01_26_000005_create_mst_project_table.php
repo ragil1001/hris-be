@@ -12,8 +12,8 @@ return new class extends Migration {
             $table->boolean('is_active')->default(1)->index();
             $table->date('tanggal_mulai')->nullable();
             $table->string('bagian')->nullable();
-            $table->decimal('longitude', 10, 7)->nullable();
-            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 18, 15)->nullable();
+            $table->decimal('latitude', 18, 15)->nullable();
             $table->unsignedInteger('radius_absensi')->default(0);
             $table->json('pengecualian_formasi')->nullable();
             $table->unsignedSmallInteger('waktu_toleransi')->default(0);

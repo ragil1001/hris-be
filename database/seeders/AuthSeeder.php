@@ -75,6 +75,12 @@ class AuthSeeder extends Seeder
             ['name' => 'bank.create', 'display_name' => 'Create Bank', 'group' => 'bank'],
             ['name' => 'bank.edit', 'display_name' => 'Edit Bank', 'group' => 'bank'],
             ['name' => 'bank.delete', 'display_name' => 'Delete Bank', 'group' => 'bank'],
+            
+            // Unit Kerja permissions
+            ['name' => 'unit_kerja.view', 'display_name' => 'View Unit Kerja', 'group' => 'unit_kerja'],
+            ['name' => 'unit_kerja.create', 'display_name' => 'Create Unit Kerja', 'group' => 'unit_kerja'],
+            ['name' => 'unit_kerja.edit', 'display_name' => 'Edit Unit Kerja', 'group' => 'unit_kerja'],
+            ['name' => 'unit_kerja.delete', 'display_name' => 'Delete Unit Kerja', 'group' => 'unit_kerja'],
         ];
 
         foreach ($permissions as $perm) {
@@ -89,11 +95,7 @@ class AuthSeeder extends Seeder
             );
 
             $adminRole->permissions()->syncWithoutDetaching($permission->id);
-            if (str_contains($perm['name'], 'view')) {
-                $hrdRole->permissions()->syncWithoutDetaching($permission->id);
-            } else {
-                $hrdRole->permissions()->syncWithoutDetaching($permission->id);
-            }
+            $hrdRole->permissions()->syncWithoutDetaching($permission->id);
         }
 
         User::firstOrCreate(

@@ -3,9 +3,6 @@
 namespace App\Services;
 
 use App\Models\Project;
-use App\Events\ProjectCreated;
-use App\Events\ProjectUpdated;
-use App\Events\ProjectDeleted;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectService
@@ -51,7 +48,7 @@ class ProjectService
             $project->shifts()->createMany($shiftsData);
         }
 
-        event(new ProjectCreated($project, Auth::id()));
+        // event(new ProjectCreated($project, Auth::id()));
 
         // Reload relations for response
         $project->load(['izins', 'formasis', 'shifts']);
@@ -110,7 +107,7 @@ class ProjectService
         
         if (!empty($changes)) {
             $project->update($changes);
-            event(new ProjectUpdated($project, Auth::id(), $changes));
+            // event(new ProjectUpdated($project, Auth::id(), $changes));
         }
     }
 
@@ -118,6 +115,6 @@ class ProjectService
     {
         Project::where('id', $project->id)->update(['is_active' => 0]);
         
-        event(new ProjectDeleted($project, Auth::id()));
+        // event(new ProjectDeleted($project, Auth::id()));
     }
 }

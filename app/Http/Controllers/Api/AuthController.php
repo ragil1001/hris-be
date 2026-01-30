@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Events\UserLoggedIn;
-use App\Events\UserLoggedOut;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -30,7 +30,8 @@ class AuthController extends Controller
             $request->input('password')
         );
 
-        event(new UserLoggedIn($user, $request->ip(), $request->userAgent()));
+        // Dispatch standard Laravel Login event
+        event(new Login('sanctum', $user, false));
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -69,7 +70,10 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        event(new UserLoggedOut($user, $request->ip(), $request->userAgent()));
+        // Dispatch standard Laravel Logout event
+        if ($user) {
+            event(new Logout('sanctum', $user));
+        }
 
         $user->currentAccessToken()->delete();
 

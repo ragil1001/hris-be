@@ -3,9 +3,6 @@
 namespace App\Services;
 
 use App\Models\Jabatan;
-use App\Events\JabatanCreated;
-use App\Events\JabatanUpdated;
-use App\Events\JabatanDeleted;
 use Illuminate\Support\Facades\Auth;
 
 class JabatanService
@@ -16,7 +13,7 @@ class JabatanService
 
         $jabatan = Jabatan::create($data);
 
-        event(new JabatanCreated($jabatan, Auth::id()));
+        // event(new JabatanCreated($jabatan, Auth::id()));
 
         return $jabatan;
     }
@@ -27,13 +24,13 @@ class JabatanService
 
         if (!empty($changes)) {
             $jabatan->update($changes);
-            event(new JabatanUpdated($jabatan, Auth::id(), $changes));
+            // event(new JabatanUpdated($jabatan, Auth::id(), $changes));
         }
     }
 
     public function delete(Jabatan $jabatan): void
     {
         $jabatan->update(['is_active' => false]);
-        event(new JabatanDeleted($jabatan, Auth::id()));
+        // event(new JabatanDeleted($jabatan, Auth::id()));
     }
 }

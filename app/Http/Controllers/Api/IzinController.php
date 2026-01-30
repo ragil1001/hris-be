@@ -36,7 +36,7 @@ class IzinController extends Controller
             }
         }
 
-        $izins = $query->orderBy('kategori')->paginate(20);
+        $izins = $query->latest('id')->paginate(20);
 
         return response()->json(['data' => $izins]);
     }

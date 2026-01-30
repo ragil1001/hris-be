@@ -7,9 +7,6 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Keluarga;
 use App\Models\AyahIbu;
-use App\Events\KaryawanCreated;
-use App\Events\KaryawanUpdated;
-use App\Events\KaryawanDeleted;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -41,13 +38,21 @@ class KaryawanService
 
         $data['user_id'] = $user->id;
         $data['nik'] = $nik;
-        $data['status_karyawan'] = $data['status_karyawan'] ?? 'KONTRAK';
+        $data['control_status'] = $data['control_status'] ?? 'KONTRAK';
+        
+        // Auto-resign logic
+        if (!empty($data['tanggal_resign'])) {
+            $data['status'] = 'RESIGN';
+        } else {
+            $data['status'] = $data['status'] ?? 'AKTIF';
+        }
+
         $data['tanggal_aktif'] = $data['tanggal_aktif'] ?? now();
         $data['sisa_cuti'] = 12;
 
         $karyawan = Karyawan::create($data);
 
-        event(new KaryawanCreated($karyawan, auth()->id()));
+        // event(new KaryawanCreated($karyawan, auth()->id()));
 
         return $karyawan;
     }
@@ -62,8 +67,14 @@ class KaryawanService
     public function update(Karyawan $karyawan, array $data): Karyawan
     {
         $oldData = $karyawan->toArray();
+
+        // Auto-resign logic
+        if (!empty($data['tanggal_resign'])) {
+            $data['status'] = 'RESIGN';
+        }
+
         $karyawan->update($data);
-        event(new KaryawanUpdated($karyawan, auth()->id(), $oldData));
+        // event(new KaryawanUpdated($karyawan, auth()->id(), $oldData));
 
         return $karyawan;
     }
@@ -124,7 +135,7 @@ class KaryawanService
             }
         }
 
-        event(new KaryawanUpdated($karyawan, auth()->id(), ['keluarga_changes' => $oldData]));
+        // event(new KaryawanUpdated($karyawan, auth()->id(), ['keluarga_changes' => $oldData]));
     }
 
     /**
@@ -136,7 +147,7 @@ class KaryawanService
     public function delete(Karyawan $karyawan): void
     {
         $karyawan->delete();
-        event(new KaryawanDeleted($karyawan, auth()->id()));
+        // event(new KaryawanDeleted($karyawan, auth()->id()));
     }
 
     /**
@@ -151,7 +162,7 @@ class KaryawanService
             $tanggalLahir = Carbon::parse($karyawan->tanggal_lahir);
             $password = $tanggalLahir->format('ddmmY');
             $karyawan->user->update(['password' => Hash::make($password)]);
-            event(new KaryawanUpdated($karyawan, auth()->id(), ['password_reset' => true]));
+            // event(new KaryawanUpdated($karyawan, auth()->id(), ['password_reset' => true]));
         }
     }
 }

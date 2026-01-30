@@ -3,9 +3,6 @@
 namespace App\Services;
 
 use App\Models\Izin;
-use App\Events\IzinCreated;
-use App\Events\IzinUpdated;
-use App\Events\IzinDeleted;
 use Illuminate\Support\Facades\Auth;
 
 class IzinService
@@ -16,7 +13,7 @@ class IzinService
 
         $izin = Izin::create($data);
 
-        event(new IzinCreated($izin, Auth::id()));
+        // event(new IzinCreated($izin, Auth::id()));
 
         return $izin;
     }
@@ -27,13 +24,13 @@ class IzinService
 
         if (!empty($changes)) {
             $izin->update($changes);
-            event(new IzinUpdated($izin, Auth::id(), $changes));
+            // event(new IzinUpdated($izin, Auth::id(), $changes));
         }
     }
 
     public function delete(Izin $izin): void
     {
         $izin->update(['is_active' => false]);
-        event(new IzinDeleted($izin, Auth::id()));
+        // event(new IzinDeleted($izin, Auth::id()));
     }
 }

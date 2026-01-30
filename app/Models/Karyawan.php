@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Carbon\Carbon;
+use App\Traits\Auditable;
 
 class Karyawan extends Model
 {
-    use HasFactory, SoftDeletes;
-    public $timestamps = false;
+    use HasFactory, SoftDeletes, Auditable;
+    public $timestamps = true;
 
     protected $table = 'mst.karyawan';
 
@@ -24,17 +25,18 @@ class Karyawan extends Model
         'tanggal_masuk',
         'tanggal_resign',
         'tanggal_aktif',
-        'status_karyawan',
+        'control_status',
+        'status',
         'jenis_kelamin',
         'tempat_lahir',
         'tanggal_lahir',
         'agama',
         'golongan_darah',
         'no_telepon',
-        'no_wa',
         'email',
         'alamat',
-        'rt_rw',
+        'rt',
+        'rw',
         'kelurahan',
         'kecamatan',
         'kabupaten_kota',
@@ -42,23 +44,18 @@ class Karyawan extends Model
         'no_ktp',
         'no_kk',
         'no_bpjs_kesehatan',
-        'npp_bpjs_kesehatan',
         'bu_bpjs_kesehatan',
         'no_bpjs_ketenagakerjaan',
         'npp_bpjs_ketenagakerjaan',
-        'no_npwp',
+        'no_jaminan_pensiun',
+        'bu',
         'status_pernikahan',
-        'jumlah_anak',
         'pendidikan_terakhir',
-        'nama_institusi',
-        'tahun_lulus',
         'no_rekening',
-        'nama_rekening',
         'bank_id',
         'gaji_pokok',
         'insentif',
         'uang_makan',
-        'potongan',
         'formasi_id',
         'jabatan_id',
         'unit_kerja_id',
@@ -133,8 +130,5 @@ class Karyawan extends Model
         return "{$years} tahun {$months} bulan";
     }
 
-    public function getStatusAttribute(): string
-    {
-        return $this->deleted_at ? 'NONAKTIF' : 'AKTIF';
-    }
+
 }
