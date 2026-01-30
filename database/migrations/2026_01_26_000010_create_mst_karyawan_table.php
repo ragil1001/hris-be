@@ -23,7 +23,7 @@ return new class extends Migration
             $table->enum('jenis_kelamin', ['L', 'P'])->default('L');
             $table->string('agama')->nullable();
             $table->string('golongan_darah')->nullable();
-            $table->enum('status_pernikahan', ['MENIKAH', 'BELUM_MENIKAH', 'CERAI'])->default('BELUM_MENIKAH');
+            $table->string('status_pernikahan')->nullable();
             $table->string('pendidikan_terakhir')->nullable();
             
             // Employment Details

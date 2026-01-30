@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Keluarga;
 use App\Models\AyahIbu;
+use App\Jobs\LogAuditJob;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -74,7 +75,19 @@ class KaryawanService
         }
 
         $karyawan->update($data);
-        // event(new KaryawanUpdated($karyawan, auth()->id(), $oldData));
+        if ($karyawan->wasChanged()) {
+            $changes = $karyawan->getChanges();
+            $meta = [
+                'model' => get_class($karyawan),
+                'model_id' => $karyawan->id,
+                'details' => $karyawan->toArray(),
+                'changes' => [
+                    'before' => array_intersect_key($oldData, $changes),
+                    'after' => $changes
+                ]
+            ];
+            LogAuditJob::dispatch(auth()->id(), 'Updated Karyawan', request()->ip(), request()->userAgent(), $meta);
+        }
 
         return $karyawan;
     }
@@ -135,7 +148,18 @@ class KaryawanService
             }
         }
 
-        // event(new KaryawanUpdated($karyawan, auth()->id(), ['keluarga_changes' => $oldData]));
+        // Consolidate changes into metadata
+        $meta = [
+            'section' => 'informasi_keluarga',
+            'model' => get_class($karyawan),
+            'model_id' => $karyawan->id,
+            'details' => [
+                'updated_keluarga' => isset($data['istri_suami']) || isset($data['anak']),
+                'updated_orang_tua' => isset($data['orang_tua'])
+            ]
+        ];
+
+        LogAuditJob::dispatch(auth()->id(), 'Updated Karyawan', request()->ip(), request()->userAgent(), $meta);
     }
 
     /**
@@ -144,9 +168,16 @@ class KaryawanService
      * @param Karyawan $karyawan
      * @return void
      */
-    public function delete(Karyawan $karyawan): void
+    public function delete(Karyawan $karyawan, ?string $tanggalResign = null): void
     {
-        $karyawan->delete();
+        if ($tanggalResign) {
+            $karyawan->update([
+                'status' => 'RESIGN',
+                'tanggal_resign' => $tanggalResign,
+            ]);
+        } else {
+            $karyawan->delete();
+        }
         // event(new KaryawanDeleted($karyawan, auth()->id()));
     }
 

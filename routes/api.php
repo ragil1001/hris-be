@@ -22,7 +22,13 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:karyawan.view')->group(function () {
         Route::get('/karyawans', [KaryawanController::class, 'index']);
         Route::get('/karyawans/{karyawan}', [KaryawanController::class, 'show']);
-    });
+        
+        // Export Routes
+        Route::post('/karyawans/export', [\App\Http\Controllers\Api\KaryawanExportController::class, 'export']);
+        Route::get('/karyawans/export/status/{exportId}', [\App\Http\Controllers\Api\KaryawanExportController::class, 'status']);
+        Route::get('/karyawans/export/download/{exportId}', [\App\Http\Controllers\Api\KaryawanExportController::class, 'download']);
+        Route::post('/karyawans/import', [App\Http\Controllers\Api\KaryawanImportController::class, 'import']);
+});
 
     Route::middleware('permission:karyawan.create')->post('/karyawans', [KaryawanController::class, 'store']);
 

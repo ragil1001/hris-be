@@ -174,11 +174,12 @@ class KaryawanController extends Controller
      * @param Karyawan $karyawan
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Karyawan $karyawan): \Illuminate\Http\JsonResponse
+    public function destroy(Request $request, Karyawan $karyawan): \Illuminate\Http\JsonResponse
     {
-        $this->service->delete($karyawan);
+        $tanggalResign = $request->input('tanggal_resign');
+        $this->service->delete($karyawan, $tanggalResign);
 
-        return response()->json(['message' => 'Delete Karyawan successful']);
+        return response()->json(['message' => 'Proses resign karyawan berhasil']);
     }
 
     /**
