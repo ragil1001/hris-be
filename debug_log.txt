@@ -1,0 +1,14 @@
+Export Failed!
+Error: range(): Argument #2 ($end) must be a single byte, subsequent bytes are ignored
+Trace: #0 D:\Magang\cs-app\hris-be\vendor\laravel\framework\src\Illuminate\Foundation\Bootstrap\HandleExceptions.php(258): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(2, 'range(): Argume...', 'D:\\Magang\\cs-ap...', 148)
+#1 [internal function]: Illuminate\Foundation\Bootstrap\HandleExceptions->Illuminate\Foundation\Bootstrap\{closure}(2, 'range(): Argume...', 'D:\\Magang\\cs-ap...', 148)
+#2 D:\Magang\cs-app\hris-be\app\Exports\KaryawanTemplateExport.php(148): range('A', 'BS')
+#3 D:\Magang\cs-app\hris-be\vendor\maatwebsite\excel\src\HasEventBus.php(51): App\Exports\KaryawanTemplateExport->App\Exports\{closure}(Object(Maatwebsite\Excel\Events\AfterSheet))
+#4 D:\Magang\cs-app\hris-be\vendor\maatwebsite\excel\src\Sheet.php(450): Maatwebsite\Excel\Sheet->raise(Object(Maatwebsite\Excel\Events\AfterSheet))
+#5 D:\Magang\cs-app\hris-be\vendor\maatwebsite\excel\src\Sheet.php(230): Maatwebsite\Excel\Sheet->close(Object(App\Exports\KaryawanTemplateExport))
+#6 D:\Magang\cs-app\hris-be\vendor\maatwebsite\excel\src\Writer.php(71): Maatwebsite\Excel\Sheet->export(Object(App\Exports\KaryawanTemplateExport))
+#7 D:\Magang\cs-app\hris-be\vendor\maatwebsite\excel\src\Excel.php(204): Maatwebsite\Excel\Writer->export(Object(App\Exports\KaryawanTemplateExport), 'Xlsx')
+#8 D:\Magang\cs-app\hris-be\vendor\maatwebsite\excel\src\Excel.php(108): Maatwebsite\Excel\Excel->export(Object(App\Exports\KaryawanTemplateExport), 'test_template.x...', 'Xlsx')
+#9 D:\Magang\cs-app\hris-be\vendor\laravel\framework\src\Illuminate\Support\Facades\Facade.php(363): Maatwebsite\Excel\Excel->store(Object(App\Exports\KaryawanTemplateExport), 'test_template.x...', 'local')
+#10 D:\Magang\cs-app\hris-be\test_export.php(20): Illuminate\Support\Facades\Facade::__callStatic('store', Array)
+#11 {main}

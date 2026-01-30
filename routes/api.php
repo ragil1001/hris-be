@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::get('/karyawans/template-import', [\App\Http\Controllers\Api\KaryawanExportController::class, 'template']);
 });
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
