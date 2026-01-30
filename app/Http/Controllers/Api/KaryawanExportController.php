@@ -20,6 +20,12 @@ class KaryawanExportController extends Controller
 
     public function export()
     {
+        // Hapus file export lama sebelum membuat yang baru
+        $files = Storage::disk('public')->files('exports');
+        if (!empty($files)) {
+            Storage::disk('public')->delete($files);
+        }
+
         $exportId = Str::uuid()->toString();
         Cache::put("export_progress_{$exportId}", ['status' => 'pending', 'progress' => 0, 'message' => 'Menunggu antrian...'], 300);
         
